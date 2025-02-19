@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+.thin-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    border-radius: var(--radius-xl);
+}
+
+/* Track */
+.thin-scrollbar::-webkit-scrollbar-track {
+    border-bottom-right-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+}
+   
+/* Handle */
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    border-radius: var(--radius-xl);
+}
