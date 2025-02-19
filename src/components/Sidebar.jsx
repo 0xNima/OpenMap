@@ -26,6 +26,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { useMap } from "react-leaflet";
+import { Bounce, toast } from "react-toastify";
 
 
 const FLAY_ZOOM = 5;
@@ -126,6 +127,107 @@ function TrashIcon(props) {
 }
 
 
+const POIS = [
+    {
+        name: 'Cinema',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=cinema](${bbox});way[amenity=cinema](${bbox});rel[amenity=cinema](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Embassy',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=embassy](${bbox});way[amenity=embassy](${bbox});rel[amenity=embassy](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Hospital',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=hospital](${bbox});way[amenity=hospital](${bbox});rel[amenity=hospital](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'University',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=university](${bbox});way[amenity=university](${bbox});rel[amenity=university](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Post Office',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=post_office](${bbox});way[amenity=post_office](${bbox});rel[amenity=post_office](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Hotel',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=hotel](${bbox});way[amenity=hotel](${bbox});rel[amenity=hotel](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Hostel',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=hostel](${bbox});way[amenity=hostel](${bbox});rel[amenity=hostel](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Cafe',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=cafe](${bbox});way[amenity=cafe](${bbox});rel[amenity=cafe](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Restaurant',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=restaurant](${bbox});way[amenity=restaurant](${bbox});rel[amenity=restaurant](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Museum',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=museum](${bbox});way[amenity=museum](${bbox});rel[amenity=museum](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Zoo',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=zoo](${bbox});way[amenity=zoo](${bbox});rel[amenity=zoo](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+    {
+        name: 'Theme Park',
+        active: false,
+        makeQuery (bbox) {
+            return `(node[amenity=theme_park](${bbox});way[amenity=theme_park](${bbox});rel[amenity=theme_park](${bbox}););(._;>;);out center;`
+        },
+        controller: null
+    },
+]
+
+const POI_MIN_REQUIRED_ZOOM = 8;
+
 export function Sidebar(props) {
   const [open, setOpen] = React.useState(0);
   const map = useMap();
@@ -133,6 +235,42 @@ export function Sidebar(props) {
   const handleOpen = (value) => {
     setOpen(open === value ? 0 : value);
   };
+
+  const fetchPOIs = async (tag) => {
+    const bounds = map.getBounds();
+
+    if (map.getZoom() < POI_MIN_REQUIRED_ZOOM) {
+        map.flyTo(bounds.getCenter(), POI_MIN_REQUIRED_ZOOM);
+    }
+
+    const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+
+    try {
+        toast(`Processing You Request... It may take a while`, {
+            position: "bottom-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+        });
+
+        const response = await fetch("https://overpass-api.de/api/interpreter", {
+            method: "POST",
+            body: `data=${encodeURIComponent(tag.makeQuery(bbox))}`,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            signal: tag.controller.signal
+        });
+        const data = await response.json();
+        toast.success(`${tag.name} POIs are ready!`, {position: 'bottom-right'});
+        props.setPoisData(data.elements || []);
+        } catch (error) {
+            console.error("Error fetching POIs:", error);
+        }
+    };
  
   return (
       <Drawer open={props.isOpen} onClose={props.onClose}>
@@ -269,13 +407,19 @@ export function Sidebar(props) {
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <List className="p-0">
+                <List className="p-0 max-h-[200px] overflow-y-scroll thin-scrollbar">
                   {
-                    props.pois?.map((item, i) => {
+                    POIS.map((item, i) => {
                         return <ListItem key={i}>
                             <Checkbox color={item.color} label={item.name} defaultChecked={item.active} onChange={e => {
                                 item.active = e.target.checked;
-                                props.poisToggle([...props.pois]);
+                                if (item.controller) item.controller.abort(`Abort Fetching ${item.name}`);
+                                if (e.target.checked) {
+                                    item.controller = new AbortController();
+                                    fetchPOIs(item);
+                                } else {
+                                    item.controller = null;
+                                }
                             }}/>
                         </ListItem>
                     })
