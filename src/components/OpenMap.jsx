@@ -1,19 +1,17 @@
-import { MapContainer, Marker, Popup, TileLayer, Tooltip, FeatureGroup } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, Tooltip, FeatureGroup, GeoJSON } from 'react-leaflet'
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
 import { Sidebar } from './Sidebar'
 import { IconButton } from '@material-tailwind/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid'
 import { useState } from 'react'
-import { CoffeIcon, ParkIcon, RestaurantIcon } from '../assets';
-import { icon } from 'leaflet'
 import { ToastContainer } from 'react-toastify';
 import { EditControl } from "react-leaflet-draw"
 import * as L from "leaflet";
-
+import { ICON_MAP, INIT_LOCATION, INIT_ZOOM } from '../constants'
 
 export default function() {
-    const position = [48, 14]
+    const position = INIT_LOCATION;
     const [drawerState, setDrawer] = useState(false);
     const [layers, setLayers] = useState([
         {
@@ -43,28 +41,18 @@ export default function() {
         }
     ]);
     const [poisData, setPoisData] = useState([]);
-    const [markers, setMarkers] = useState([]);
     const [features, setFeatures] = useState([]);
+    const [geoData, setGeoData] = useState([]);
 
     return (
         <>
-            <MapContainer center={position} zoom={5} scrollWheelZoom={true} doubleClickZoom={false} className='h-screen'>
+            <MapContainer center={position} zoom={INIT_ZOOM} scrollWheelZoom={true} doubleClickZoom={false} className='h-screen'>
                 <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"/>
 
                 {layers.map((item, i) => (0 && item.active) ? <TileLayer url={item.url} key={i}/> : null)}
-                
-                {markers.map((item, i) => (
-                    <Marker position={item.position} key={i}>
-                        {item.name ? <Tooltip permanent={true}> {item.name} </Tooltip> : null}
-                    </Marker>
-                ))}
 
-                {poisData.map(poi => (
-                    <Marker 
-                        key={poi.id}
-                        position={[poi.lat, poi.lon]}
-                        // icon={ICON_MAP[poi.tags.amenity ?? poi.tags.leisure ?? "default"]}
-                        >
+                {poisData.map((poi, i) => (
+                    <Marker  key={i} position={[poi.lat, poi.lon]} icon={ICON_MAP[poi.tags.amenity ?? poi.tags.leisure ?? "default"]}>
                         <Popup>
                             <b>{poi.tags.name || "Unnamed POI"}</b>
                             <br />
@@ -73,20 +61,18 @@ export default function() {
                     </Marker>
                 ))}
 
-                <div className='leaflet-top leaflet-right'>
-                    <Sidebar
-                        isOpen={drawerState}
-                        onClose={() => setDrawer(false)}
-                        layers={layers}
-                        layersToggle={setLayers}
-                        markers={markers}
-                        markerHandler={setMarkers}
-                        setPoisData={setPoisData}
-                        features={features}
-                        featureHandler={setFeatures}
-                    />
-                </div>
-
+                {geoData.map((gdata, i) => (
+                    <GeoJSON key={i} data={gdata.data}>
+                        <Tooltip offset={[0, 20]} opacity={1}>
+                                {`File Name: ${gdata.filename}`}
+                                <br/>
+                                {
+                                gdata.data?.type ? `Feature Type: ${gdata.data?.type}` : null 
+                                }
+                        </Tooltip>
+                    </GeoJSON>
+                ))}
+                
                 <FeatureGroup>
                     <EditControl
                         position="topleft"
@@ -118,6 +104,23 @@ export default function() {
                         }}
                     />
                 </FeatureGroup>
+                        
+                <div className='leaflet-top leaflet-right'>
+                    <Sidebar
+                        isOpen={drawerState}
+                        onClose={() => setDrawer(false)}
+                        layers={layers}
+                        layersToggle={setLayers}
+                        setPoisData={(data) => data?.length ? setPoisData((prev) => [...prev, ...data]) : null}
+                        features={features}
+                        featureHandler={setFeatures}
+                        geoData={geoData}
+                        geoDataHandler={(data) => setGeoData((prev) => [...prev, data])}
+                        geoDataDeleted={(deletedId) => {
+                            setGeoData(geoData.filter(i => i.id !== deletedId));
+                        }}
+                    />
+                </div>
             </MapContainer>
             <div className='leaflet-top leaflet-right'>
                 <IconButton variant="text" size="lg" onClick={() => setDrawer(!drawerState)} className="leaflet-bar leaflet-control bg-white hover:bg-white">

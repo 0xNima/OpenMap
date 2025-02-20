@@ -7,226 +7,35 @@ import {
   Accordion,
   AccordionHeader,
   AccordionBody,
-  Input,
   Drawer,
   Card,
   Checkbox,
   IconButton,
 } from "@material-tailwind/react";
 import {
-  PresentationChartBarIcon,
-  ShoppingBagIcon,
-  UserCircleIcon,
-  Square3Stack3DIcon
+  PaintBrushIcon,
+  Square3Stack3DIcon,
+  GlobeEuropeAfricaIcon,
+  FolderPlusIcon
 } from "@heroicons/react/24/solid";
 import {
-  ChevronRightIcon,
   ChevronDownIcon,
-  CubeTransparentIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { useMap } from "react-leaflet";
 import { Bounce, toast } from "react-toastify";
+import { FLAY_ZOOM, INIT_LOCATION, INIT_ZOOM, POIS } from "../constants";
+import GeoCoder from "./GeoCoder";
+import DragAndDrop from "./DragAndDrop";
+import TrashIcon from "./TrashIcon";
 
 
-const FLAY_ZOOM = 5;
+const COLLAPSED = 0
+const LAYERS_SUB_MENU = 1
+const MARKERS_SUB_MENU = 2
+const POIS_SUB_MENU = 3
+const DRAWING_SUB_MENU = 4
+const GEODATA_SUB_MENU = 5
 
-function GeoCoder(props) {
-    const map = useMap();
-    const [searchTerm, setSearchTerm] = useState("");
-    const [suggestions, setSuggestions] = useState([]);
-
-    let tid;
-
-    const handleSearch = (e) => {
-        clearTimeout(tid);
-        tid = setTimeout(async () => {
-            setSearchTerm(e.target.value);
-            if (e.target.value.length > 2) {
-                const response = await fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + e.target.value);
-                const data = await response.json();
-                setSuggestions(data);
-            } else {
-                setSuggestions([]);
-            }
-        }, 500)
-    };
-
-    const handleSelect = (place) => {
-        const { lat, lon, display_name } = place;
-        map.flyTo([parseFloat(lat), parseFloat(lon)], FLAY_ZOOM);
-
-        const markers = props?.markers ?? [];
-        markers.push({
-            position: [parseFloat(lat), parseFloat(lon)],
-            name: place.display_name,
-            id: Date.now()
-        });
-
-        props?.markerHandler([...markers]);
-
-        setSearchTerm(display_name);
-        setSuggestions([]);
-    };
-
-    useEffect(() => {
-        if (!props.open) {
-            setSearchTerm("");
-            setSuggestions([]);
-        }
-    }, [props.open])
-
-    return <>
-        <Input
-            icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-            label="Search a Location or address"
-            onChange={handleSearch}
-        />
-        {
-            suggestions.length ?
-            <Card
-                className="absolute z-10000 w-full max-h-[200px] overflow-y-scroll thin-scrollbar"
-                onMouseEnter={() => map.scrollWheelZoom = false}
-                onMouseLeave={() => map.scrollWheelZoom = true}
-            >
-                <List>
-                    {
-                        suggestions.map((item, i) => {
-                            return <ListItem
-                                className="w-full truncate hover:bg-gray-100"
-                                key={i}
-                                onClick={() => {
-                                    handleSelect(item);
-                                }}
-                                > {item.display_name} </ListItem>
-                        })
-                    }
-                </List>
-            </Card> : null
-        }
-    </>;
-}
-
-
-function TrashIcon(props) {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        className="h-5 w-5"
-        onClick={props?.onClick}
-      >
-        <path
-          fillRule="evenodd"
-          d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
-          clipRule="evenodd"
-        />
-      </svg>
-    );
-}
-
-
-const POIS = [
-    {
-        name: 'Cinema',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=cinema](${bbox});way[amenity=cinema](${bbox});rel[amenity=cinema](${bbox}););(._;>;);out Body;`
-        },
-        controller: null
-    },
-    {
-        name: 'Embassy',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=embassy](${bbox});way[amenity=embassy](${bbox});rel[amenity=embassy](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Hospital',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=hospital](${bbox});way[amenity=hospital](${bbox});rel[amenity=hospital](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'University',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=university](${bbox});way[amenity=university](${bbox});rel[amenity=university](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Post Office',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=post_office](${bbox});way[amenity=post_office](${bbox});rel[amenity=post_office](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Hotel',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=hotel](${bbox});way[amenity=hotel](${bbox});rel[amenity=hotel](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Hostel',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=hostel](${bbox});way[amenity=hostel](${bbox});rel[amenity=hostel](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Cafe',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=cafe](${bbox});way[amenity=cafe](${bbox});rel[amenity=cafe](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Restaurant',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=restaurant](${bbox});way[amenity=restaurant](${bbox});rel[amenity=restaurant](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Museum',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=museum](${bbox});way[amenity=museum](${bbox});rel[amenity=museum](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Zoo',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=zoo](${bbox});way[amenity=zoo](${bbox});rel[amenity=zoo](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-    {
-        name: 'Theme Park',
-        active: false,
-        makeQuery (bbox) {
-            return `(node[amenity=theme_park](${bbox});way[amenity=theme_park](${bbox});rel[amenity=theme_park](${bbox}););(._;>;);out center;`
-        },
-        controller: null
-    },
-]
-
-const POI_MIN_REQUIRED_ZOOM = 8;
 
 export function Sidebar(props) {
   const [open, setOpen] = useState(0);
@@ -258,16 +67,11 @@ export function Sidebar(props) {
   }, [pendingReqs]);
 
   const handleOpen = (value) => {
-    setOpen(open === value ? 0 : value);
+    setOpen(open === value ? COLLAPSED : value);
   };
 
   const fetchPOIs = async (tag) => {
     const bounds = map.getBounds();
-
-    if (map.getZoom() < POI_MIN_REQUIRED_ZOOM) {
-        map.flyTo(bounds.getCenter(), POI_MIN_REQUIRED_ZOOM);
-    }
-
     const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
 
     setPendingReqs(prev => prev + 1);
@@ -281,7 +85,7 @@ export function Sidebar(props) {
         });
         const data = await response.json();
         toast.success(<div className="text-sm">{tag.name} POIs are ready!</div>, {position: 'bottom-right'});
-        props.setPoisData(data.elements || []);
+        props.setPoisData(data.elements?.filter(i => (typeof i.lat === 'number') && (typeof i.lon === 'number')) || []);
         } catch (error) {
             if (!error.startsWith?.call(error, 'Abort Fetching')) toast.error(<div className="text-sm">Failedto fetch {tag.name} POIs</div>, {position: 'bottom-right'});
             console.error("Error fetching POIs:", error);
@@ -304,28 +108,29 @@ export function Sidebar(props) {
           </div>
           
           <div className="p-2">
-            <GeoCoder open={props.isOpen} markers={props.markers} markerHandler={props.markerHandler}/>
+            <GeoCoder open={props.isOpen}/>
           </div>
 
           <List>
+            {/* Layers */}
             <Accordion
-              open={open === 1}
+              open={open === LAYERS_SUB_MENU}
               icon={
                 <ChevronDownIcon
                   strokeWidth={2.5}
                   className={`mx-auto h-4 w-4 transition-transform ${
-                    open === 1 ? "rotate-180" : ""
+                    open === LAYERS_SUB_MENU ? "rotate-180" : ""
                   }`}
                 />
               }
             >
-              <ListItem className="p-0" selected={open === 1}>
+              <ListItem className="p-0" selected={open === LAYERS_SUB_MENU}>
                 <AccordionHeader
-                  onClick={() => handleOpen(1)}
+                  onClick={() => handleOpen(LAYERS_SUB_MENU)}
                   className="border-b-0 p-3"
                 >
                   <ListItemPrefix><Square3Stack3DIcon className="h-5 w-5" /></ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">Layers</Typography>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Weather Layers</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
@@ -361,83 +166,36 @@ export function Sidebar(props) {
               </AccordionBody>
             </Accordion>
             
+            {/* POIs */}
             <Accordion
-              open={open === 2}
+              open={open === POIS_SUB_MENU}
               icon={
                 <ChevronDownIcon
                   strokeWidth={2.5}
                   className={`mx-auto h-4 w-4 transition-transform ${
-                    open === 2 ? "rotate-180" : ""
+                    open === POIS_SUB_MENU ? "rotate-180" : ""
                   }`}
                 />
               }
             >
-              <ListItem className="p-0" selected={open === 2}>
+              <ListItem className="p-0" selected={open === POIS_SUB_MENU}>
                 <AccordionHeader
-                  onClick={() => handleOpen(2)}
+                  onClick={() => handleOpen(POIS_SUB_MENU)}
                   className="border-b-0 p-3"
                 >
-                  <ListItemPrefix><ShoppingBagIcon className="h-5 w-5" /></ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">Markers</Typography>
-                </AccordionHeader>
-              </ListItem>
-              <AccordionBody className="py-1">
-                <List className="p-0">
-                  {
-                    props?.markers.map((item, i) => (
-                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            map.flyTo(item.position, FLAY_ZOOM);
-                        }}>
-                            <Typography color="blue-gray" className="mr-auto font-normal truncate">{item.name}</Typography>
-                            <ListItemPrefix className="m-0">
-                                <IconButton variant="text" color="blue-gray">
-                                    <TrashIcon onClick={() => {
-                                        if (confirm('Are you sure to remove the market?')) {
-                                            const markers = props.markers.filter(i => i.id !== item.id);
-                                            props.markerHandler(markers);
-                                            handleOpen(2);
-                                        }
-                                    }}/>
-                                </IconButton>
-                            </ListItemPrefix>
-                        </ListItem>
-                    ))
-                  }
-                </List>
-              </AccordionBody>
-            </Accordion>
-            
-            <Accordion
-              open={open === 3}
-              icon={
-                <ChevronDownIcon
-                  strokeWidth={2.5}
-                  className={`mx-auto h-4 w-4 transition-transform ${
-                    open === 3 ? "rotate-180" : ""
-                  }`}
-                />
-              }
-            >
-              <ListItem className="p-0" selected={open === 3}>
-                <AccordionHeader
-                  onClick={() => handleOpen(3)}
-                  className="border-b-0 p-3"
-                >
-                  <ListItemPrefix><Square3Stack3DIcon className="h-5 w-5" /></ListItemPrefix>
+                  <ListItemPrefix><GlobeEuropeAfricaIcon className="h-5 w-5" /></ListItemPrefix>
                   <Typography color="blue-gray" className="mr-auto font-normal">POIs</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar"
-                onMouseEnter={(e) => {
-                    map.scrollWheelZoom.disable();
-                }}
-                onMouseLeave={(e) => {
-                    map.scrollWheelZoom.enable();
-                }}
-                >
+                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-b-1 border-gray-400 rounded-b-xs"
+                    onMouseEnter={(e) => {
+                        if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
+                    }}
+                    onMouseLeave={(e) => {
+                        if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
+                    }}
+                    >
                     <List className="p-0">
                         {POIS.map((item, i) => {
                             return <ListItem className="p-0" key={i}>
@@ -475,28 +233,25 @@ export function Sidebar(props) {
               </AccordionBody>
             </Accordion>
 
+            {/* Drawings */}
             <Accordion
-              open={open === 4}
+              open={open === DRAWING_SUB_MENU}
               icon={
                 <ChevronDownIcon
                   strokeWidth={2.5}
                   className={`mx-auto h-4 w-4 transition-transform ${
-                    open === 4 ? "rotate-180" : ""
+                    open === DRAWING_SUB_MENU ? "rotate-180" : ""
                   }`}
                 />
               }
             >
-              <ListItem className="p-0" selected={open === 4}>
+              <ListItem className="p-0" selected={open === DRAWING_SUB_MENU}>
                 <AccordionHeader
-                  onClick={() => handleOpen(4)}
+                  onClick={() => handleOpen(DRAWING_SUB_MENU)}
                   className="border-b-0 p-3"
                 >
-                  <ListItemPrefix>
-                    <ShoppingBagIcon className="h-5 w-5" />
-                  </ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">
-                    Drawings
-                  </Typography>
+                  <ListItemPrefix><PaintBrushIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Drawings</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
@@ -516,14 +271,63 @@ export function Sidebar(props) {
               </AccordionBody>
             </Accordion>
 
+            {/* Uploaded Geo Files */}
+            <Accordion
+              open={open === GEODATA_SUB_MENU}
+              icon={
+                <ChevronDownIcon
+                  strokeWidth={2.5}
+                  className={`mx-auto h-4 w-4 transition-transform ${
+                    open === GEODATA_SUB_MENU ? "rotate-180" : ""
+                  }`}
+                />
+              }
+            >
+              <ListItem className="p-0" selected={open === GEODATA_SUB_MENU}>
+                <AccordionHeader
+                  onClick={() => handleOpen(GEODATA_SUB_MENU)}
+                  className="border-b-0 p-3"
+                >
+                  <ListItemPrefix><FolderPlusIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Uploaded Geo Files</Typography>
+                </AccordionHeader>
+              </ListItem>
+              <AccordionBody className="py-1">
+                <List className="p-0">
+                  {
+                    props?.geoData.map((item, i) => (
+                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            map.flyTo(item.center, INIT_ZOOM);
+                        }}>
+                            <Typography color="blue-gray" className="mr-auto font-normal truncate">{item.filename}</Typography>
+                            <ListItemPrefix className="m-0">
+                                <IconButton variant="text" color="blue-gray">
+                                    <TrashIcon onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (confirm('Are you sure to remove the file?')) {
+                                            props.geoDataDeleted(item.id);
+                                            map.flyTo(INIT_LOCATION, INIT_ZOOM);
+                                            handleOpen(GEODATA_SUB_MENU);
+                                        }
+                                    }}/>
+                                </IconButton>
+                            </ListItemPrefix>
+                        </ListItem>
+                    ))
+                  }
+                </List>
+              </AccordionBody>
+            </Accordion>
+
             <hr className="my-2 border-blue-gray-50" />
-            
-            <ListItem>
-              <ListItemPrefix>
-                <UserCircleIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              Upload File
-            </ListItem>
+
+            <DragAndDrop
+                className="h-[200px] text-sm border-2 border-gray-400 border-dashed rounded-md flex flex-col items-center justify-center gap-3"
+                geoDataHandler={props.geoDataHandler}
+            />
           </List>
         </Card>
       </Drawer>
