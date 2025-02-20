@@ -331,7 +331,7 @@ export function Sidebar(props) {
                 >
                   {
                     props?.features.map((item, i) => (
-                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
+                        <ListItem key={i} className="pr-0 py-2 hover:bg-gray-100 justify-between" onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             map.flyTo(item.center, FLAY_ZOOM);

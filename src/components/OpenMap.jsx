@@ -77,7 +77,7 @@ export default function() {
                                     {`File Name: ${gdata.filename}`}
                                     <br/>
                                     {
-                                    gdata.data?.type ? `Feature Type: ${gdata.data?.type}` : null 
+                                        gdata.data?.type ? `Feature Type: ${gdata.data?.type}` : null 
                                     }
                             </Tooltip>
                         </GeoJSON>
@@ -93,17 +93,20 @@ export default function() {
                                 const newFeature = {
                                     id: layer._leaflet_id,
                                     type: layer instanceof L.Marker ? "Point" : 
-                                    layer instanceof L.Polygon ? "Polygon" : 
-                                    layer instanceof L.Circle ? "Circle" :
-                                    layer instanceof L.Rectangle ? "Rectangle":
-                                    layer instanceof L.CircleMarker ? "CircleMarker":
-                                    "Line",
+                                        layer instanceof L.Polygon ? "Polygon" : 
+                                        layer instanceof L.Circle ? "Circle" :
+                                        layer instanceof L.Rectangle ? "Rectangle":
+                                        layer instanceof L.CircleMarker ? "CircleMarker": "Line",
                                     coordinates: layer instanceof L.Marker
                                         ? [layer.getLatLng().lat, layer.getLatLng().lng]
                                         : (layer instanceof L.Circle || layer instanceof L.CircleMarker) ? 
                                         [layer.getLatLng().lat, layer.getLatLng().lng, layer.getRadius()] : 
                                         layer.getLatLngs(),
-                                    center: layer?.getCenter()
+                                    center: (layer instanceof L.Marker || 
+                                            layer instanceof L.Circle || 
+                                            layer instanceof L.CircleMarker
+                                        ) ? [layer.getLatLng().lat, layer.getLatLng().lng] :
+                                        layer.getCenter?.call(layer)
                                 };
                                 setFeatures([...features, newFeature]);
                             }}
