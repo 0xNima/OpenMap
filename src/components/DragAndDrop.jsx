@@ -40,7 +40,7 @@ export default function(props) {
                     const decoder = new TextDecoder("utf-8");
                     const jsonText = decoder.decode(reader.result);
                     const kml = parser.parseFromString(jsonText, "text/xml");
-                    geoData = JSON.parse(toGeoJSON.kml(kml));
+                    geoData = toGeoJSON.kml(kml);
                 }
 
                 const centerPoint = turf.center(geoData)?.geometry.coordinates?.reverse();
