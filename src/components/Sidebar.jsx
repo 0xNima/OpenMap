@@ -385,7 +385,11 @@ export function Sidebar(props) {
                         <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            map.flyTo(item.center, INIT_ZOOM);
+                            if (item.center) {
+                              map.flyTo(item.center, INIT_ZOOM);
+                            } else if (item.bounds) {
+                              map.flyToBounds(item.bounds, INIT_ZOOM);
+                            }
                         }}>
                             <Typography color="blue-gray" className="mr-auto font-normal truncate">{item.filename}</Typography>
                             <ListItemPrefix className="m-0">

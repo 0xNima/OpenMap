@@ -10,14 +10,14 @@ class POI {
         this.active = false;
     }
     makeQuery (bbox) {
-        return `[out:json][timeout:60];(node[amenity=${this.key}](${bbox});way[amenity=${this.key}](${bbox}););out body ${this.limit};`
+        return `[out:json];(node[amenity=${this.key}](${bbox});way[amenity=${this.key}](${bbox}););out body ${this.limit};`
     }
 }
 
 export const POIS = [
-    ['Cinema', 'cinema', 50], ['Embassy', 'embassy', 50], ['Hospital', 'hospital', 50], ['University', 'university', 50],
-    ['Post Office', 'post_office', 50], ['Hotel', 'hotel', 50], ['Hostel', 'hostel', 50], ['Cafe', 'cafe', 50],
-    ['Restaurant', 'restaurant', 50], ['Museum', 'museum', 50], ['Zoo', 'zoo', 50], ['Theme Park', 'theme_park', 50] 
+    ['Cinema', 'cinema', 100], ['Embassy', 'embassy', 100], ['Hospital', 'hospital', 100], ['University', 'university', 100],
+    ['Post Office', 'post_office', 100], ['Hotel', 'hotel', 100], ['Hostel', 'hostel', 100], ['Cafe', 'cafe', 100],
+    ['Restaurant', 'restaurant', 100], ['Museum', 'museum', 100], ['Zoo', 'zoo', 100], ['Theme Park', 'theme_park', 100] 
 
 ].map(i => new POI(...i));
 
@@ -43,4 +43,4 @@ export const FLAY_ZOOM = 8;
 export const POI_MIN_REQUIRED_ZOOM = 8;
 export const INIT_ZOOM = 5;
 export const INIT_LOCATION = [48, 14]; 
-export const SUPPORTED_GEO_FILES = ['geojson', 'kml']
+export const SUPPORTED_GEO_FILES = ['geojson', 'kml', 'shp', 'dbf', 'prj', 'cpg']
