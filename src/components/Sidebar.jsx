@@ -11,12 +11,15 @@ import {
   Card,
   Checkbox,
   IconButton,
+  ListItemSuffix,
 } from "@material-tailwind/react";
 import {
   PaintBrushIcon,
   Square3Stack3DIcon,
   GlobeEuropeAfricaIcon,
-  FolderPlusIcon
+  FolderPlusIcon,
+  EyeSlashIcon,
+  EyeIcon
 } from "@heroicons/react/24/solid";
 import {
   ChevronDownIcon,
@@ -31,10 +34,9 @@ import TrashIcon from "./TrashIcon";
 
 const COLLAPSED = 0
 const LAYERS_SUB_MENU = 1
-const MARKERS_SUB_MENU = 2
-const POIS_SUB_MENU = 3
-const DRAWING_SUB_MENU = 4
-const GEODATA_SUB_MENU = 5
+const POIS_SUB_MENU = 2
+const DRAWING_SUB_MENU = 3
+const GEODATA_SUB_MENU = 4
 
 
 export function Sidebar(props) {
@@ -42,6 +44,10 @@ export function Sidebar(props) {
   const map = useMap();
   const toastId = useRef(null);
   const [pendingReqs, setPendingReqs] = useState(0);
+  const [wl, setWL] = useState(false);
+  const [pl, setPL] = useState(false);
+  const [dl, setDL] = useState(false);
+  const [gl, setGL] = useState(false);
 
   useEffect(() => {
     if (pendingReqs) {
@@ -65,6 +71,22 @@ export function Sidebar(props) {
         toastId.current = null;
     }
   }, [pendingReqs]);
+
+  useEffect(() => {
+    props.wl?.current.getLayers().forEach(l => wl ? map.removeLayer(l) : map.addLayer(l));
+  }, [wl])
+
+  useEffect(() => {
+    props.pl?.current.getLayers().forEach(l => pl ? map.removeLayer(l) : map.addLayer(l));
+  }, [pl])
+
+  useEffect(() => {
+    props.dl?.current.getLayers().forEach(l => dl ? map.removeLayer(l) : map.addLayer(l));
+  }, [dl])
+
+  useEffect(() => {
+    props.gl?.current.getLayers().forEach(l => gl ? map.removeLayer(l) : map.addLayer(l));
+  }, [gl])
 
   const handleOpen = (value) => {
     setOpen(open === value ? COLLAPSED : value);
@@ -92,8 +114,8 @@ export function Sidebar(props) {
         } finally {
             setPendingReqs(prev => Math.max(prev - 1, 0));
         }
-    };
- 
+  };
+
   return (
       <Drawer open={props.isOpen} onClose={props.onClose}>
         <Card
@@ -112,7 +134,7 @@ export function Sidebar(props) {
           </div>
 
           <List>
-            {/* Layers */}
+            {/* Weather Layers */}
             <Accordion
               open={open === LAYERS_SUB_MENU}
               icon={
@@ -131,6 +153,21 @@ export function Sidebar(props) {
                 >
                   <ListItemPrefix><Square3Stack3DIcon className="h-5 w-5" /></ListItemPrefix>
                   <Typography color="blue-gray" className="mr-auto font-normal">Weather Layers</Typography>
+                  <ListItemSuffix>
+                    {
+                        wl ? 
+                        <EyeSlashIcon className="h-4 w-4" onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setWL(false);
+                        }}/> : 
+                        <EyeIcon className="h-4 w-4" onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setWL(true);
+                        }}/>
+                    }
+                  </ListItemSuffix>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
@@ -156,7 +193,7 @@ export function Sidebar(props) {
                                                 props.layersToggle([...props.layers]);
                                             }}/>
                                     </ListItemPrefix>
-                                    <Typography color="blue-gray" className="font-medium">{item.name}</Typography>
+                                    <Typography color="blue-gray" className="text-sm font-medium">{item.name}</Typography>
                                 </label>
                             </ListItem>
                             })
@@ -185,10 +222,25 @@ export function Sidebar(props) {
                 >
                   <ListItemPrefix><GlobeEuropeAfricaIcon className="h-5 w-5" /></ListItemPrefix>
                   <Typography color="blue-gray" className="mr-auto font-normal">POIs</Typography>
+                  <ListItemSuffix>
+                    {
+                        pl ? 
+                        <EyeSlashIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setPL(false);
+                        }}/> : 
+                        <EyeIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setPL(true);
+                        }}/>
+                    }
+                  </ListItemSuffix>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-b-1 border-gray-400 rounded-b-xs"
+                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-gray-400 rounded-b-xs"
                     onMouseEnter={(e) => {
                         if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
                     }}
@@ -196,39 +248,39 @@ export function Sidebar(props) {
                         if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
                     }}
                     >
-                    <List className="p-0">
-                        {POIS.map((item, i) => {
-                            return <ListItem className="p-0" key={i}>
-                                <label
-                                    htmlFor={`vertical-list-react-${i}`}
-                                    className="flex w-full cursor-pointer items-center px-3 py-2"
-                                >
-                                    <ListItemPrefix className="mr-3">
-                                        <Checkbox
-                                            id={`vertical-list-react-${i}`}
-                                            ripple={false}
-                                            className="hover:before:opacity-0"
-                                            containerProps={{
-                                                className: "p-0",
-                                            }}
-                                            defaultChecked={item.active}
-                                            onChange={e => {
-                                                item.active = e.target.checked;
-                                                if (item.controller) item.controller.abort(`Abort Fetching ${item.name}`);
-                                                if (e.target.checked) {
-                                                    item.controller = new AbortController();
-                                                    fetchPOIs(item);
-                                                } else {
-                                                    item.controller = null;
-                                                }
-                                            }}/>
-                                    </ListItemPrefix>
-                                    <Typography color="blue-gray" className="font-medium">{item.name}</Typography>
-                                </label>
-                            </ListItem>
-                            })
-                        }
-                    </List>
+                        <List className="p-0">
+                            {POIS.map((item, i) => {
+                                return <ListItem className="p-0" key={i}>
+                                    <label
+                                        htmlFor={`vertical-list-react-${i}`}
+                                        className="flex w-full cursor-pointer items-center px-3 py-2"
+                                    >
+                                        <ListItemPrefix className="mr-3">
+                                            <Checkbox
+                                                id={`vertical-list-react-${i}`}
+                                                ripple={false}
+                                                className="hover:before:opacity-0"
+                                                containerProps={{
+                                                    className: "p-0",
+                                                }}
+                                                defaultChecked={item.active}
+                                                onChange={e => {
+                                                    item.active = e.target.checked;
+                                                    if (item.controller) item.controller.abort(`Abort Fetching ${item.name}`);
+                                                    if (e.target.checked) {
+                                                        item.controller = new AbortController();
+                                                        fetchPOIs(item);
+                                                    } else {
+                                                        item.controller = null;
+                                                    }
+                                                }}/>
+                                        </ListItemPrefix>
+                                        <Typography color="blue-gray" className="text-sm font-medium">{item.name}</Typography>
+                                    </label>
+                                </ListItem>
+                                })
+                            }
+                        </List>
                 </Card>
               </AccordionBody>
             </Accordion>
@@ -252,10 +304,31 @@ export function Sidebar(props) {
                 >
                   <ListItemPrefix><PaintBrushIcon className="h-5 w-5" /></ListItemPrefix>
                   <Typography color="blue-gray" className="mr-auto font-normal">Drawings</Typography>
+                    {
+                        dl ? 
+                        <EyeSlashIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setDL(false);
+                        }}/> : 
+                        <EyeIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setDL(true);
+                        }}/>
+                    }
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <List className="p-0">
+                <List 
+                    className="p-0 shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-gray-400 rounded-b-xs"
+                    onMouseEnter={(e) => {
+                        if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
+                    }}
+                    onMouseLeave={(e) => {
+                        if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
+                    }}
+                >
                   {
                     props?.features.map((item, i) => (
                         <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
@@ -263,7 +336,7 @@ export function Sidebar(props) {
                             e.stopPropagation();
                             map.flyTo(item.center, FLAY_ZOOM);
                         }}>
-                            <Typography color="blue-gray" className="font-medium truncate">{`${item.type} ${item.id}`}</Typography>
+                            <Typography color="blue-gray" className="text-sm font-normal truncate">{`${item.type} ${item.id}`}</Typography>
                         </ListItem>
                     ))
                   }
@@ -290,6 +363,19 @@ export function Sidebar(props) {
                 >
                   <ListItemPrefix><FolderPlusIcon className="h-5 w-5" /></ListItemPrefix>
                   <Typography color="blue-gray" className="mr-auto font-normal">Uploaded Geo Files</Typography>
+                    {
+                        gl ? 
+                        <EyeSlashIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setGL(false);
+                        }}/> : 
+                        <EyeIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setGL(true);
+                        }}/>
+                    }
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">

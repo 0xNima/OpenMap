@@ -1,10 +1,10 @@
-import { MapContainer, Marker, Popup, TileLayer, Tooltip, FeatureGroup, GeoJSON } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, Tooltip, FeatureGroup, GeoJSON, LayerGroup } from 'react-leaflet'
 import "leaflet/dist/leaflet.css"
 import "leaflet-draw/dist/leaflet.draw.css"
 import { Sidebar } from './Sidebar'
 import { IconButton } from '@material-tailwind/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ToastContainer } from 'react-toastify';
 import { EditControl } from "react-leaflet-draw"
 import * as L from "leaflet";
@@ -44,66 +44,79 @@ export default function() {
     const [features, setFeatures] = useState([]);
     const [geoData, setGeoData] = useState([]);
 
+    const weatherLayer = useRef(null);
+    const poiLayer = useRef(null);
+    const geodataLayer = useRef(null);
+    const drawingLayer = useRef(null);
+
     return (
         <>
             <MapContainer center={position} zoom={INIT_ZOOM} scrollWheelZoom={true} doubleClickZoom={false} className='h-screen'>
                 <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"/>
 
-                {layers.map((item, i) => (0 && item.active) ? <TileLayer url={item.url} key={i}/> : null)}
+                <LayerGroup ref={weatherLayer}>
+                    {layers.map((item, i) => item.active ? <TileLayer url={item.url} key={i}/> : null)}
+                </LayerGroup>
 
-                {poisData.map((poi, i) => (
-                    <Marker  key={i} position={[poi.lat, poi.lon]} icon={ICON_MAP[poi.tags.amenity ?? poi.tags.leisure ?? "default"]}>
-                        <Popup>
-                            <b>{poi.tags.name || "Unnamed POI"}</b>
-                            <br />
-                            Type: {poi.tags.amenity || poi.tags.leisure}
-                        </Popup>
-                    </Marker>
-                ))}
+                <LayerGroup ref={poiLayer}>
+                    {poisData.map((poi, i) => (
+                        <Marker  key={i} position={[poi.lat, poi.lon]} icon={ICON_MAP[poi.tags.amenity ?? poi.tags.leisure ?? "default"]}>
+                            <Popup>
+                                <b>{poi.tags.name || "Unnamed POI"}</b>
+                                <br />
+                                Type: {poi.tags.amenity || poi.tags.leisure}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </LayerGroup>
 
-                {geoData.map((gdata, i) => (
-                    <GeoJSON key={i} data={gdata.data}>
-                        <Tooltip offset={[0, 20]} opacity={1}>
-                                {`File Name: ${gdata.filename}`}
-                                <br/>
-                                {
-                                gdata.data?.type ? `Feature Type: ${gdata.data?.type}` : null 
-                                }
-                        </Tooltip>
-                    </GeoJSON>
-                ))}
+                <LayerGroup ref={geodataLayer}>
+                    {geoData.map((gdata, i) => (
+                        <GeoJSON key={i} data={gdata.data}>
+                            <Tooltip offset={[0, 20]} opacity={1}>
+                                    {`File Name: ${gdata.filename}`}
+                                    <br/>
+                                    {
+                                    gdata.data?.type ? `Feature Type: ${gdata.data?.type}` : null 
+                                    }
+                            </Tooltip>
+                        </GeoJSON>
+                    ))}
+                </LayerGroup>
                 
-                <FeatureGroup>
-                    <EditControl
-                        position="topleft"
-                        onCreated={(e) => {
-                            const { layer } = e;
-                            const newFeature = {
-                                id: layer._leaflet_id,
-                                type: layer instanceof L.Marker ? "Point" : 
-                                layer instanceof L.Polygon ? "Polygon" : 
-                                layer instanceof L.Circle ? "Circle" :
-                                layer instanceof L.Rectangle ? "Rectangle":
-                                layer instanceof L.CircleMarker ? "CircleMarker":
-                                "Line",
-                                coordinates: layer instanceof L.Marker
-                                    ? [layer.getLatLng().lat, layer.getLatLng().lng]
-                                    : (layer instanceof L.Circle || layer instanceof L.CircleMarker) ? 
-                                    [layer.getLatLng().lat, layer.getLatLng().lng, layer.getRadius()] : 
-                                    layer.getLatLngs(),
-                                center: layer.getCenter()
-                            };
-                            setFeatures([...features, newFeature]);
-                        }}
-                        draw={{
-                            rectangle: { showArea: false },
-                        }}
-                        onDeleted={(e) => {
-                            const newFeatures = features.filter(i => !(i.id in (e.layers._layers ?? {})));
-                            setFeatures(newFeatures);
-                        }}
-                    />
-                </FeatureGroup>
+                <LayerGroup ref={drawingLayer}>
+                    <FeatureGroup>
+                        <EditControl
+                            position="topleft"
+                            onCreated={(e) => {
+                                const { layer } = e;
+                                const newFeature = {
+                                    id: layer._leaflet_id,
+                                    type: layer instanceof L.Marker ? "Point" : 
+                                    layer instanceof L.Polygon ? "Polygon" : 
+                                    layer instanceof L.Circle ? "Circle" :
+                                    layer instanceof L.Rectangle ? "Rectangle":
+                                    layer instanceof L.CircleMarker ? "CircleMarker":
+                                    "Line",
+                                    coordinates: layer instanceof L.Marker
+                                        ? [layer.getLatLng().lat, layer.getLatLng().lng]
+                                        : (layer instanceof L.Circle || layer instanceof L.CircleMarker) ? 
+                                        [layer.getLatLng().lat, layer.getLatLng().lng, layer.getRadius()] : 
+                                        layer.getLatLngs(),
+                                    center: layer?.getCenter()
+                                };
+                                setFeatures([...features, newFeature]);
+                            }}
+                            draw={{
+                                rectangle: { showArea: false },
+                            }}
+                            onDeleted={(e) => {
+                                const newFeatures = features.filter(i => !(i.id in (e.layers._layers ?? {})));
+                                setFeatures(newFeatures);
+                            }}
+                        />
+                    </FeatureGroup>
+                </LayerGroup>
                         
                 <div className='leaflet-top leaflet-right'>
                     <Sidebar
@@ -119,6 +132,10 @@ export default function() {
                         geoDataDeleted={(deletedId) => {
                             setGeoData(geoData.filter(i => i.id !== deletedId));
                         }}
+                        wl={weatherLayer}
+                        pl={poiLayer}
+                        gl={geodataLayer}
+                        dl={drawingLayer}
                     />
                 </div>
             </MapContainer>

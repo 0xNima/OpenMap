@@ -7,13 +7,14 @@
 
 /* Track */
 .thin-scrollbar::-webkit-scrollbar-track {
-    border-bottom-right-radius: var(--radius-xl);
-    border-top-right-radius: var(--radius-xl);
+    border-radius: var(--radius-xl);
+    background-color: #eeeeee;
 }
    
 /* Handle */
 .thin-scrollbar::-webkit-scrollbar-thumb {
     background: #888;
+    border-radius: var(--radius-xl);
 }
 
 /* Handle on hover */
