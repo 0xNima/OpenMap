@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Typography,
   List,
@@ -132,7 +132,7 @@ const POIS = [
         name: 'Cinema',
         active: false,
         makeQuery (bbox) {
-            return `(node[amenity=cinema](${bbox});way[amenity=cinema](${bbox});rel[amenity=cinema](${bbox}););(._;>;);out center;`
+            return `(node[amenity=cinema](${bbox});way[amenity=cinema](${bbox});rel[amenity=cinema](${bbox}););(._;>;);out Body;`
         },
         controller: null
     },
@@ -229,8 +229,33 @@ const POIS = [
 const POI_MIN_REQUIRED_ZOOM = 8;
 
 export function Sidebar(props) {
-  const [open, setOpen] = React.useState(0);
+  const [open, setOpen] = useState(0);
   const map = useMap();
+  const toastId = useRef(null);
+  const [pendingReqs, setPendingReqs] = useState(0);
+
+  useEffect(() => {
+    if (pendingReqs) {
+        if (toastId.current) {
+            toast.update(toastId.current, {render: <div className="text-sm">Processing You Request...<br/>Pending requests: {pendingReqs}</div>, autoClose: 60008 * pendingReqs})
+        } else {
+            toastId.current = toast.info(<div className="text-sm">Processing You Request...<br/>Pending requests: {pendingReqs}</div>, {
+                position: "bottom-right",
+                autoClose: 60000 * pendingReqs,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        }
+    } else {
+        toast.dismiss(toastId.current);
+        toastId.current = null;
+    }
+  }, [pendingReqs]);
 
   const handleOpen = (value) => {
     setOpen(open === value ? 0 : value);
@@ -245,19 +270,9 @@ export function Sidebar(props) {
 
     const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
 
-    try {
-        toast(`Processing You Request... It may take a while`, {
-            position: "bottom-right",
-            autoClose: 1000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Bounce,
-        });
+    setPendingReqs(prev => prev + 1);
 
+    try {
         const response = await fetch("https://overpass-api.de/api/interpreter", {
             method: "POST",
             body: `data=${encodeURIComponent(tag.makeQuery(bbox))}`,
@@ -265,10 +280,13 @@ export function Sidebar(props) {
             signal: tag.controller.signal
         });
         const data = await response.json();
-        toast.success(`${tag.name} POIs are ready!`, {position: 'bottom-right'});
+        toast.success(<div className="text-sm">{tag.name} POIs are ready!</div>, {position: 'bottom-right'});
         props.setPoisData(data.elements || []);
         } catch (error) {
+            if (!error.startsWith?.call(error, 'Abort Fetching')) toast.error(<div className="text-sm">Failedto fetch {tag.name} POIs</div>, {position: 'bottom-right'});
             console.error("Error fetching POIs:", error);
+        } finally {
+            setPendingReqs(prev => Math.max(prev - 1, 0));
         }
     };
  
@@ -306,27 +324,40 @@ export function Sidebar(props) {
                   onClick={() => handleOpen(1)}
                   className="border-b-0 p-3"
                 >
-                  <ListItemPrefix>
-                    <Square3Stack3DIcon className="h-5 w-5" />
-                  </ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">
-                    Layers
-                  </Typography>
+                  <ListItemPrefix><Square3Stack3DIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Layers</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <List className="p-0">
-                  {
-                    props.layers?.map((item, i) => {
-                        return <ListItem key={i}>
-                            <Checkbox label={item.name} defaultChecked={item.active} onChange={e => {
-                                item.active = e.target.checked;
-                                props.layersToggle([...props.layers]);
-                            }}/>
-                        </ListItem>
-                    })
-                  }
-                </List>
+                <Card className="shadow-none">
+                    <List className="p-0">
+                        {props.layers?.map((item, i) => {
+                            return <ListItem className="p-0" key={i}>
+                                <label
+                                    htmlFor={`vertical-list-react-${i}`}
+                                    className="flex w-full cursor-pointer items-center px-3 py-2"
+                                >
+                                    <ListItemPrefix className="mr-3">
+                                        <Checkbox
+                                            id={`vertical-list-react-${i}`}
+                                            ripple={false}
+                                            className="hover:before:opacity-0"
+                                            containerProps={{
+                                                className: "p-0",
+                                            }}
+                                            defaultChecked={item.active}
+                                            onChange={e => {
+                                                item.active = e.target.checked;
+                                                props.layersToggle([...props.layers]);
+                                            }}/>
+                                    </ListItemPrefix>
+                                    <Typography color="blue-gray" className="font-medium">{item.name}</Typography>
+                                </label>
+                            </ListItem>
+                            })
+                        }
+                    </List>
+                </Card>
               </AccordionBody>
             </Accordion>
             
@@ -346,24 +377,20 @@ export function Sidebar(props) {
                   onClick={() => handleOpen(2)}
                   className="border-b-0 p-3"
                 >
-                  <ListItemPrefix>
-                    <ShoppingBagIcon className="h-5 w-5" />
-                  </ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">
-                    Markers
-                  </Typography>
+                  <ListItemPrefix><ShoppingBagIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Markers</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
                 <List className="p-0">
                   {
                     props?.markers.map((item, i) => (
-                        <ListItem key={i} className="pr-0 hover:bg-gray-100 justify-between" onClick={(e) => {
+                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             map.flyTo(item.position, FLAY_ZOOM);
                         }}>
-                            <div className="truncate">{item.name}</div>
+                            <Typography color="blue-gray" className="mr-auto font-normal truncate">{item.name}</Typography>
                             <ListItemPrefix className="m-0">
                                 <IconButton variant="text" color="blue-gray">
                                     <TrashIcon onClick={() => {
@@ -398,33 +425,53 @@ export function Sidebar(props) {
                   onClick={() => handleOpen(3)}
                   className="border-b-0 p-3"
                 >
-                  <ListItemPrefix>
-                    <Square3Stack3DIcon className="h-5 w-5" />
-                  </ListItemPrefix>
-                  <Typography color="blue-gray" className="mr-auto font-normal">
-                    POIs
-                  </Typography>
+                  <ListItemPrefix><Square3Stack3DIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">POIs</Typography>
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <List className="p-0 max-h-[200px] overflow-y-scroll thin-scrollbar">
-                  {
-                    POIS.map((item, i) => {
-                        return <ListItem key={i}>
-                            <Checkbox color={item.color} label={item.name} defaultChecked={item.active} onChange={e => {
-                                item.active = e.target.checked;
-                                if (item.controller) item.controller.abort(`Abort Fetching ${item.name}`);
-                                if (e.target.checked) {
-                                    item.controller = new AbortController();
-                                    fetchPOIs(item);
-                                } else {
-                                    item.controller = null;
-                                }
-                            }}/>
-                        </ListItem>
-                    })
-                  }
-                </List>
+                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar"
+                onMouseEnter={(e) => {
+                    map.scrollWheelZoom.disable();
+                }}
+                onMouseLeave={(e) => {
+                    map.scrollWheelZoom.enable();
+                }}
+                >
+                    <List className="p-0">
+                        {POIS.map((item, i) => {
+                            return <ListItem className="p-0" key={i}>
+                                <label
+                                    htmlFor={`vertical-list-react-${i}`}
+                                    className="flex w-full cursor-pointer items-center px-3 py-2"
+                                >
+                                    <ListItemPrefix className="mr-3">
+                                        <Checkbox
+                                            id={`vertical-list-react-${i}`}
+                                            ripple={false}
+                                            className="hover:before:opacity-0"
+                                            containerProps={{
+                                                className: "p-0",
+                                            }}
+                                            defaultChecked={item.active}
+                                            onChange={e => {
+                                                item.active = e.target.checked;
+                                                if (item.controller) item.controller.abort(`Abort Fetching ${item.name}`);
+                                                if (e.target.checked) {
+                                                    item.controller = new AbortController();
+                                                    fetchPOIs(item);
+                                                } else {
+                                                    item.controller = null;
+                                                }
+                                            }}/>
+                                    </ListItemPrefix>
+                                    <Typography color="blue-gray" className="font-medium">{item.name}</Typography>
+                                </label>
+                            </ListItem>
+                            })
+                        }
+                    </List>
+                </Card>
               </AccordionBody>
             </Accordion>
 
@@ -456,12 +503,12 @@ export function Sidebar(props) {
                 <List className="p-0">
                   {
                     props?.features.map((item, i) => (
-                        <ListItem key={i} className="pr-0 hover:bg-gray-100 justify-between" onClick={(e) => {
+                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             map.flyTo(item.center, FLAY_ZOOM);
                         }}>
-                            <div className="truncate">{`${item.type} ${item.id}`}</div>
+                            <Typography color="blue-gray" className="font-medium truncate">{`${item.type} ${item.id}`}</Typography>
                         </ListItem>
                     ))
                   }

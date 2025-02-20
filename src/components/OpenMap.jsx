@@ -12,7 +12,7 @@ import { EditControl } from "react-leaflet-draw"
 import * as L from "leaflet";
 
 
-export default function(props) {
+export default function() {
     const position = [48, 14]
     const [drawerState, setDrawer] = useState(false);
     const [layers, setLayers] = useState([
@@ -128,7 +128,7 @@ export default function(props) {
                     )}
                 </IconButton>
             </div>
-            <ToastContainer />
+            <ToastContainer newestOnTop={true}/>
         </>
     )
 }
