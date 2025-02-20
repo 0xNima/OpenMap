@@ -43,11 +43,13 @@ export default function() {
     const [poisData, setPoisData] = useState([]);
     const [features, setFeatures] = useState([]);
     const [geoData, setGeoData] = useState([]);
+    const [rasters, setRasters] = useState([]);
 
     const weatherLayer = useRef(null);
     const poiLayer = useRef(null);
     const geodataLayer = useRef(null);
     const drawingLayer = useRef(null);
+    const rasterLayer = useRef(null);
 
     return (
         <>
@@ -120,6 +122,8 @@ export default function() {
                         />
                     </FeatureGroup>
                 </LayerGroup>
+
+                <LayerGroup ref={rasterLayer}></LayerGroup>
                         
                 <div className='leaflet-top leaflet-right'>
                     <Sidebar
@@ -135,10 +139,16 @@ export default function() {
                         geoDataDeleted={(deletedId) => {
                             setGeoData(geoData.filter(i => i.id !== deletedId));
                         }}
+                        rasters={rasters}
+                        setRaster={(raster) => setRasters(prev => [...prev,raster])}
+                        rasterDeleted={(deletedId) => {
+                            setRasters(rasters.filter(i => i.id !== deletedId));
+                        }}
                         wl={weatherLayer}
                         pl={poiLayer}
                         gl={geodataLayer}
                         dl={drawingLayer}
+                        rl={rasterLayer}
                     />
                 </div>
             </MapContainer>

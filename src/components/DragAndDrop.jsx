@@ -9,6 +9,9 @@ import { INIT_LOCATION, INIT_ZOOM, SUPPORTED_GEO_FILES } from "../constants";
 import toGeoJSON from "@mapbox/togeojson";
 import * as turf from "@turf/turf";
 import shp from 'shpjs';
+import parse_georaster from "georaster";
+import GeoRasterLayer from "georaster-layer-for-leaflet";
+
 
 export default function(props) {
     const map = useMap();
@@ -31,6 +34,21 @@ export default function(props) {
         reader.onerror = () => console.log('file reading has failed')
         reader.onload = async () => {
             if (SUPPORTED_GEO_FILES.includes(file.__ext)) {
+                if (['tif', 'geotif', 'tiff', 'geotiff'].includes(file.__ext)) {
+                  const georaster = await parse_georaster(reader.result);
+                  if (georaster) {
+                    const layer = new GeoRasterLayer({
+                      georaster: georaster,
+                      opacity: 0.7,
+                      resolution: 255
+                    });
+                    props.rasterHandler({name: file.name, layer, id: Date.now()});
+                    props.rasterLayerGroup.current.addLayer(layer);
+                    map.flyToBounds(layer.getBounds());
+                  }
+                  return
+                }
+
                 let geoData;
                 let centerPoint;
                 let bounds;

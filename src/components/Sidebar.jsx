@@ -37,6 +37,7 @@ const LAYERS_SUB_MENU = 1
 const POIS_SUB_MENU = 2
 const DRAWING_SUB_MENU = 3
 const GEODATA_SUB_MENU = 4
+const RASTER_SUB_MENU = 5
 
 
 export function Sidebar(props) {
@@ -48,6 +49,7 @@ export function Sidebar(props) {
   const [pl, setPL] = useState(false);
   const [dl, setDL] = useState(false);
   const [gl, setGL] = useState(false);
+  const [rl, setRL] = useState(false);
 
   useEffect(() => {
     if (pendingReqs) {
@@ -87,6 +89,10 @@ export function Sidebar(props) {
   useEffect(() => {
     props.gl?.current.getLayers().forEach(l => gl ? map.removeLayer(l) : map.addLayer(l));
   }, [gl])
+
+  useEffect(() => {
+    props.rl?.current.getLayers().forEach(l => rl ? map.removeLayer(l) : map.addLayer(l));
+  }, [rl])
 
   const handleOpen = (value) => {
     setOpen(open === value ? COLLAPSED : value);
@@ -412,11 +418,78 @@ export function Sidebar(props) {
               </AccordionBody>
             </Accordion>
 
+            {/* Uploaded Raster Files */}
+            <Accordion
+              open={open === RASTER_SUB_MENU}
+              icon={
+                <ChevronDownIcon
+                  strokeWidth={2.5}
+                  className={`mx-auto h-4 w-4 transition-transform ${
+                    open === RASTER_SUB_MENU ? "rotate-180" : ""
+                  }`}
+                />
+              }
+            >
+              <ListItem className="p-0" selected={open === RASTER_SUB_MENU}>
+                <AccordionHeader
+                  onClick={() => handleOpen(RASTER_SUB_MENU)}
+                  className="border-b-0 p-3"
+                >
+                  <ListItemPrefix><FolderPlusIcon className="h-5 w-5" /></ListItemPrefix>
+                  <Typography color="blue-gray" className="mr-auto font-normal">Uploaded Rasters</Typography>
+                    {
+                        rl ? 
+                        <EyeSlashIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setRL(false);
+                        }}/> : 
+                        <EyeIcon className="h-4 w-4" onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setRL(true);
+                        }}/>
+                    }
+                </AccordionHeader>
+              </ListItem>
+              <AccordionBody className="py-1">
+                <List className="p-0">
+                  {
+                    props?.rasters.map((item, i) => (
+                        <ListItem key={i} className="pr-0 py-0 hover:bg-gray-100 justify-between" onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            map.flyToBounds(item?.layer?.getBounds());
+                        }}>
+                            <Typography color="blue-gray" className="mr-auto font-normal truncate">{item.name}</Typography>
+                            <ListItemPrefix className="m-0">
+                                <IconButton variant="text" color="blue-gray">
+                                    <TrashIcon onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (confirm('Are you sure to remove the file?')) {
+                                            props.rasterDeleted(item.id);
+                                            if (item.layer) props.rl.current.removeLayer(item.layer);
+                                            map.flyTo(INIT_LOCATION, INIT_ZOOM);
+                                            handleOpen(RASTER_SUB_MENU);
+                                        }
+                                    }}/>
+                                </IconButton>
+                            </ListItemPrefix>
+                        </ListItem>
+                    ))
+                  }
+                </List>
+              </AccordionBody>
+            </Accordion>
+
             <hr className="my-2 border-blue-gray-50" />
 
             <DragAndDrop
                 className="h-[200px] text-sm border-2 border-gray-400 border-dashed rounded-md flex flex-col items-center justify-center gap-3"
                 geoDataHandler={props.geoDataHandler}
+                rasterHandler={props.setRaster}
+                rasterLayerGroup={props.rl}
             />
           </List>
         </Card>
