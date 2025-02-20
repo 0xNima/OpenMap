@@ -123,7 +123,17 @@ export function Sidebar(props) {
   };
 
   return (
-      <Drawer open={props.isOpen} onClose={props.onClose}>
+      <Drawer
+        open={props.isOpen}
+        onClose={props.onClose}
+        className="overflow-y-scroll no-scrollbar"
+        onMouseEnter={(e) => {
+          if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
+        }}
+        onMouseLeave={(e) => {
+            if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
+        }}  
+      >
         <Card
           color="transparent"
           shadow={false}
@@ -246,14 +256,7 @@ export function Sidebar(props) {
                 </AccordionHeader>
               </ListItem>
               <AccordionBody className="py-1">
-                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-gray-400 rounded-b-xs"
-                    onMouseEnter={(e) => {
-                        if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
-                    }}
-                    onMouseLeave={(e) => {
-                        if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
-                    }}
-                    >
+                <Card className="shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-gray-400 rounded-b-xs">
                         <List className="p-0">
                             {POIS.map((item, i) => {
                                 return <ListItem className="p-0" key={i}>
@@ -328,12 +331,6 @@ export function Sidebar(props) {
               <AccordionBody className="py-1">
                 <List 
                     className="p-0 shadow-none max-h-[200px] overflow-y-scroll thin-scrollbar border-gray-400 rounded-b-xs"
-                    onMouseEnter={(e) => {
-                        if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
-                    }}
-                    onMouseLeave={(e) => {
-                        if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
-                    }}
                 >
                   {
                     props?.features.map((item, i) => (
