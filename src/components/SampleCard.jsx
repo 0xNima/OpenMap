@@ -8,8 +8,6 @@ import {
   List,
 } from "@material-tailwind/react";
 import { useMap } from "react-leaflet";
-import { map } from "leaflet";
-import { INIT_ZOOM } from "../constants";
 
 
 export function SampleCard(props) {
@@ -42,7 +40,17 @@ export function SampleCard(props) {
 
     return (
         <React.Fragment>
-            <Drawer open={props.isOpen} onClose={props.onClose} className="p-4 !h-[50vh] top-[126px] right-[10px] rounded-sm" placement="right">
+            <Drawer 
+                open={props.isOpen} onClose={props.onClose}
+                className="overflow-y-scroll thin-scrollbar p-4 !h-[50vh] top-[126px] right-[10px] rounded-sm"
+                placement="right"
+                onMouseEnter={(e) => {
+                    if (typeof map.scrollWheelZoom.disable == 'function') map.scrollWheelZoom.disable();
+                }}
+                onMouseLeave={(e) => {
+                    if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
+                }}      
+            >
                 <div className="mb-6 flex items-center justify-between">
                 <Typography variant="h5" color="blue-gray">
                     Sample Layers
@@ -52,8 +60,11 @@ export function SampleCard(props) {
                     {render(props.gj1Handler, props.gj1bbox, 'Europe Geojson')}
                     {render(props.gj2Handler, props.gj2bbox, 'Ontarion Geojson')}
                     {render(props.gj3Handler, props.gj3bbox, 'Quebec Geojson')}
-                    {render(props.sh1Handler, props.sh1bbox, 'Property Shapefile')}
+                    {render(props.sh1Handler, props.sh1bbox, 'Crime Shapefile')}
+                    {render(props.sh2Handler, props.sh2bbox, 'South Africa Boundry Shapefile')}
+                    {render(props.sh3Handler, props.sh3bbox, 'Germany Boundry Shapefile')}
                     {render(props.r1Handler, props.r1bbox, 'Lisbon Elevation Geotif')}
+                    {render(props.k1Handler, props.k1bbox, 'Denmark Boundry KML')}
                 </List>
             </Drawer>
         </React.Fragment>

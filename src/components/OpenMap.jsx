@@ -16,6 +16,7 @@ import { SampleCard } from './SampleCard'
 import shp from 'shpjs';
 import parse_georaster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
+import toGeoJSON from "@mapbox/togeojson";
 
 
 export default function() {
@@ -67,8 +68,17 @@ export default function() {
     const [sh1, setSH1] = useState();
     const [showSH1, setShowSH1] = useState(false);
 
+    const [sh2, setSH2] = useState();
+    const [showSH2, setShowSH2] = useState(false);
+
+    const [sh3, setSH3] = useState();
+    const [showSH3, setShowSH3] = useState(false);
+
     const [r1, setR1] = useState();
     const [showR1, setShowR1] = useState(false);
+
+    const [k1, setK1] = useState();
+    const [showK1, setShowK1] = useState(false);
 
     const weatherLayer = useRef(null);
     const poiLayer = useRef(null);
@@ -79,32 +89,49 @@ export default function() {
 
     function loadGeoJsons() {
         fetch('/samples/europe.geojson').then(res => res.json()).then(geodata => {
-            // setGJ1({data: geodata, center: turf.center(geodata)?.geometry.coordinates?.reverse()});
             const layer = L.geoJSON(geodata);
             setGJ1({data: layer, bbox: layer.getBounds()});
         });
 
         fetch('/samples/ontario.geojson').then(res => res.json()).then(geodata => {
-            // setGJ2({data: geodata, center: turf.center(geodata)?.geometry.coordinates?.reverse()});
             const layer = L.geoJSON(geodata);
             setGJ2({data: layer, bbox: layer.getBounds()});
         });
 
         fetch('/samples/quebec.geojson').then(res => res.json()).then(geodata => {
-            // setGJ3({data: geodata, center: turf.center(geodata)?.geometry.coordinates?.reverse()});
             const layer = L.geoJSON(geodata);
             setGJ3({data: layer, bbox: layer.getBounds()});
+        });
+
+        fetch('/samples/denmark.kml').then(res => res.arrayBuffer()).then(geodata => {
+            const parser = new DOMParser();
+            const decoder = new TextDecoder("utf-8");
+            const jsonText = decoder.decode(geodata);
+            const kml = parser.parseFromString(jsonText, "text/xml");
+            const layer = L.geoJSON(toGeoJSON.kml(kml));
+            setK1({data: layer, bbox: layer.getBounds()});
         });
     }
 
     function loadShapefiles() {
-        fetch('/samples/property.shp').then(res => res.arrayBuffer()).then(buff => {
+        fetch('/samples/Crime.shp').then(res => res.arrayBuffer()).then(buff => {
             shp({shp: buff}).then(geodata => {
-                // const bbox = turf.bbox(geodata);
-                // const bounds = [bbox.slice(0, 2).reverse(), bbox.slice(2, 4).reverse()];
-                // setSH1({data: geodata, bbox: bounds});
                 const layer = L.geoJSON(geodata);
                 setSH1({data: layer, bbox: layer.getBounds()});
+            })
+        });
+
+        fetch('/samples/south-africa.shp').then(res => res.arrayBuffer()).then(buff => {
+            shp({shp: buff}).then(geodata => {
+                const layer = L.geoJSON(geodata);
+                setSH2({data: layer, bbox: layer.getBounds()});
+            })
+        });
+
+        fetch('/samples/germany-boundry.shp').then(res => res.arrayBuffer()).then(buff => {
+            shp({shp: buff}).then(geodata => {
+                const layer = L.geoJSON(geodata);
+                setSH3({data: layer, bbox: layer.getBounds()});
             })
         });
     }
@@ -114,14 +141,14 @@ export default function() {
             parse_georaster(buff).then(georaster => {
                 if (georaster) {
                     const layer = new GeoRasterLayer({
-                      georaster: georaster,
+                      georaster,
                       opacity: 0.7,
                       resolution: 255
                     });
                     setR1({data: layer, bbox: layer.getBounds()});
                 }
             })
-        })
+        });
     }
 
     /** Load Samples */
@@ -148,8 +175,20 @@ export default function() {
     }, [showSH1])
 
     useEffect(() => {
+        if (sh2) showSH2 ? sampleLayer.current.addLayer(sh2.data) : sampleLayer.current.removeLayer(sh2.data);
+    }, [showSH2])
+
+    useEffect(() => {
+        if (sh3) showSH3 ? sampleLayer.current.addLayer(sh3.data) : sampleLayer.current.removeLayer(sh3.data);
+    }, [showSH3])
+
+    useEffect(() => {
         if (r1) showR1 ? sampleLayer.current.addLayer(r1.data) : sampleLayer.current.removeLayer(r1.data);
     }, [showR1])
+
+    useEffect(() => {
+        if (k1) showK1 ? sampleLayer.current.addLayer(k1.data) : sampleLayer.current.removeLayer(k1.data);
+    }, [showK1])
 
     return (
         <>
@@ -269,8 +308,14 @@ export default function() {
                         gj3bbox={gj3?.bbox}
                         sh1Handler={setShowSH1}
                         sh1bbox={sh1?.bbox}
+                        sh2Handler={setShowSH2}
+                        sh2bbox={sh2?.bbox}
+                        sh3Handler={setShowSH3}
+                        sh3bbox={sh3?.bbox}
                         r1Handler={setShowR1}
-                        r1bbox={r1?.bbox}/>
+                        r1bbox={r1?.bbox}
+                        k1Handler={setShowK1}
+                        k1bbox={k1?.bbox}/>
                 </div>
 
             </MapContainer>
