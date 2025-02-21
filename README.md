@@ -3,6 +3,7 @@
 [**OpenMap**](https://0xnima.github.io/OpenMap/) is an interactive web mapping application powered by [Leaflet](https://leafletjs.com/). It enables users to view and interact with geospatial data seamlessly.
 
 ## Features
+- **Geocoding Search**: Find locations on Earth by name and address
 - **Open Weather Data**: Including **precipitation, temperature, clouds, etc.**
 - **Sample Data**: The project includes sample data that users can activate to instantly see layers on the map. Click on the **information icon** at the top right of the page to open the sample layers' box
 - **Supports Multiple Geospatial Data Formats**: Including **Shapefile**, **GeoJSON**, **KML**, and **GeoTIFF**
