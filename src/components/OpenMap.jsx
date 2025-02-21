@@ -88,22 +88,22 @@ export default function() {
     const sampleLayer = useRef(null);
 
     function loadGeoJsons() {
-        fetch('/samples/europe.geojson').then(res => res.json()).then(geodata => {
+        fetch('/OpenMap/samples/europe.geojson').then(res => res.json()).then(geodata => {
             const layer = L.geoJSON(geodata);
             setGJ1({data: layer, bbox: layer.getBounds()});
         });
 
-        fetch('/samples/ontario.geojson').then(res => res.json()).then(geodata => {
+        fetch('/OpenMap/samples/ontario.geojson').then(res => res.json()).then(geodata => {
             const layer = L.geoJSON(geodata);
             setGJ2({data: layer, bbox: layer.getBounds()});
         });
 
-        fetch('/samples/quebec.geojson').then(res => res.json()).then(geodata => {
+        fetch('/OpenMap/samples/quebec.geojson').then(res => res.json()).then(geodata => {
             const layer = L.geoJSON(geodata);
             setGJ3({data: layer, bbox: layer.getBounds()});
         });
 
-        fetch('/samples/denmark.kml').then(res => res.arrayBuffer()).then(geodata => {
+        fetch('/OpenMap/samples/denmark.kml').then(res => res.arrayBuffer()).then(geodata => {
             const parser = new DOMParser();
             const decoder = new TextDecoder("utf-8");
             const jsonText = decoder.decode(geodata);
@@ -114,21 +114,21 @@ export default function() {
     }
 
     function loadShapefiles() {
-        fetch('/samples/Crime.shp').then(res => res.arrayBuffer()).then(buff => {
+        fetch('/OpenMap/samples/Crime.shp').then(res => res.arrayBuffer()).then(buff => {
             shp({shp: buff}).then(geodata => {
                 const layer = L.geoJSON(geodata);
                 setSH1({data: layer, bbox: layer.getBounds()});
             })
         });
 
-        fetch('/samples/south-africa.shp').then(res => res.arrayBuffer()).then(buff => {
+        fetch('/OpenMap/samples/south-africa.shp').then(res => res.arrayBuffer()).then(buff => {
             shp({shp: buff}).then(geodata => {
                 const layer = L.geoJSON(geodata);
                 setSH2({data: layer, bbox: layer.getBounds()});
             })
         });
 
-        fetch('/samples/germany-boundry.shp').then(res => res.arrayBuffer()).then(buff => {
+        fetch('/OpenMap/samples/germany-boundry.shp').then(res => res.arrayBuffer()).then(buff => {
             shp({shp: buff}).then(geodata => {
                 const layer = L.geoJSON(geodata);
                 setSH3({data: layer, bbox: layer.getBounds()});
@@ -137,7 +137,7 @@ export default function() {
     }
 
     function loadRasters() {
-        fetch('/samples/lisbon-elevation.tif').then(res => res.arrayBuffer()).then(buff => {
+        fetch('/OpenMap/samples/lisbon-elevation.tif').then(res => res.arrayBuffer()).then(buff => {
             parse_georaster(buff).then(georaster => {
                 if (georaster) {
                     const layer = new GeoRasterLayer({
