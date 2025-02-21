@@ -58,13 +58,13 @@ export function SampleCard(props) {
                 </div>
                 <List className='p-0'>
                     {render(props.gj1Handler, props.gj1bbox, 'Europe Geojson')}
-                    {render(props.gj2Handler, props.gj2bbox, 'Ontarion Geojson')}
-                    {render(props.gj3Handler, props.gj3bbox, 'Quebec Geojson')}
-                    {render(props.sh1Handler, props.sh1bbox, 'Crime Shapefile')}
-                    {render(props.sh2Handler, props.sh2bbox, 'South Africa Boundry Shapefile')}
                     {render(props.sh3Handler, props.sh3bbox, 'Germany Boundry Shapefile')}
                     {render(props.r1Handler, props.r1bbox, 'Lisbon Elevation Geotif')}
+                    {render(props.gj2Handler, props.gj2bbox, 'Ontarion Geojson')}
                     {render(props.k1Handler, props.k1bbox, 'Denmark Boundry KML')}
+                    {render(props.sh1Handler, props.sh1bbox, 'Crime Shapefile')}
+                    {render(props.gj3Handler, props.gj3bbox, 'Quebec Geojson')}
+                    {render(props.sh2Handler, props.sh2bbox, 'South Africa Boundry Shapefile')}
                 </List>
             </Drawer>
         </React.Fragment>
