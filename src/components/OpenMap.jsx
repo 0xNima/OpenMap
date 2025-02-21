@@ -4,11 +4,12 @@ import "leaflet-draw/dist/leaflet.draw.css"
 import { Sidebar } from './Sidebar'
 import { IconButton } from '@material-tailwind/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ToastContainer } from 'react-toastify';
 import { EditControl } from "react-leaflet-draw"
 import * as L from "leaflet";
 import { ICON_MAP, INIT_LOCATION, INIT_ZOOM } from '../constants'
+import { POIAlert } from './POIAlert'
 
 export default function() {
     const position = INIT_LOCATION;
@@ -44,6 +45,7 @@ export default function() {
     const [features, setFeatures] = useState([]);
     const [geoData, setGeoData] = useState([]);
     const [rasters, setRasters] = useState([]);
+    const [showAlert, setShowAlert] = useState(false);
 
     const weatherLayer = useRef(null);
     const poiLayer = useRef(null);
@@ -149,8 +151,11 @@ export default function() {
                         gl={geodataLayer}
                         dl={drawingLayer}
                         rl={rasterLayer}
+                        setShowAlert={setShowAlert}
                     />
                 </div>
+
+                <POIAlert open={showAlert} handleOpen={() => setShowAlert(!showAlert)}/>
             </MapContainer>
             <div className='leaflet-top leaflet-right'>
                 <IconButton variant="text" size="lg" onClick={() => setDrawer(!drawerState)} className="leaflet-bar leaflet-control bg-white hover:bg-white">

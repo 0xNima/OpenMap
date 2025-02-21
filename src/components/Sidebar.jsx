@@ -26,7 +26,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useMap } from "react-leaflet";
 import { Bounce, toast } from "react-toastify";
-import { FLAY_ZOOM, INIT_LOCATION, INIT_ZOOM, POIS } from "../constants";
+import { FLAY_ZOOM, INIT_LOCATION, INIT_ZOOM, POI_MIN_REQUIRED_ZOOM, POI_NOTIFICATION_DELAY, POIS } from "../constants";
 import GeoCoder from "./GeoCoder";
 import DragAndDrop from "./DragAndDrop";
 import TrashIcon from "./TrashIcon";
@@ -42,6 +42,7 @@ const RASTER_SUB_MENU = 5
 
 export function Sidebar(props) {
   const [open, setOpen] = useState(0);
+  const [canShowAlert, setCanShowAlert] = useState(true);
   const map = useMap();
   const toastId = useRef(null);
   const [pendingReqs, setPendingReqs] = useState(0);
@@ -121,6 +122,16 @@ export function Sidebar(props) {
             setPendingReqs(prev => Math.max(prev - 1, 0));
         }
   };
+
+  const possiblyAlert = () => {
+    if (map.getZoom() < POI_MIN_REQUIRED_ZOOM && (open !== POIS_SUB_MENU) && canShowAlert) {
+      props.setShowAlert(true);
+      setCanShowAlert(false);                 
+      setTimeout(() => {
+        setCanShowAlert(true);
+      }, POI_NOTIFICATION_DELAY);
+    }
+  }
 
   return (
       <Drawer
@@ -233,7 +244,10 @@ export function Sidebar(props) {
             >
               <ListItem className="p-0" selected={open === POIS_SUB_MENU}>
                 <AccordionHeader
-                  onClick={() => handleOpen(POIS_SUB_MENU)}
+                  onClick={() => {
+                    possiblyAlert();
+                    handleOpen(POIS_SUB_MENU);
+                  }}
                   className="border-b-0 p-3"
                 >
                   <ListItemPrefix><GlobeEuropeAfricaIcon className="h-5 w-5" /></ListItemPrefix>

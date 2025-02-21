@@ -43,4 +43,5 @@ export const FLAY_ZOOM = 8;
 export const POI_MIN_REQUIRED_ZOOM = 8;
 export const INIT_ZOOM = 5;
 export const INIT_LOCATION = [48, 14]; 
-export const SUPPORTED_GEO_FILES = ['geojson', 'kml', 'shp', 'dbf', 'prj', 'cpg', 'tif', 'geotif', 'tiff', 'geotiff']
+export const SUPPORTED_GEO_FILES = ['geojson', 'kml', 'shp', 'dbf', 'prj', 'cpg', 'tif', 'geotif', 'tiff', 'geotiff'];
+export const POI_NOTIFICATION_DELAY = 60000;
