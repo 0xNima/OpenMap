@@ -138,7 +138,9 @@ export function Sidebar(props) {
         }}
         onMouseLeave={(e) => {
             if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
-        }}  
+        }}
+        onTouchStart={() => typeof map.dragging.disable == 'function' && map.dragging.disable()}
+        onTouchEnd={() => typeof map.dragging.enable == 'function' && map.dragging.enable()}
       >
         <Card
           color="transparent"

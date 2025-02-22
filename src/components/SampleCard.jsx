@@ -64,6 +64,8 @@ export function SampleCard(props) {
                 onMouseLeave={(e) => {
                     if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
                 }}
+                onTouchStart={() => typeof map.dragging.disable == 'function' && map.dragging.disable()}
+                onTouchEnd={() => typeof map.dragging.enable == 'function' && map.dragging.enable()}
             >
                 <div className="mb-6 flex items-center justify-between">
                     <Typography variant="h5" color="blue-gray">
