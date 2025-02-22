@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -8,19 +8,33 @@ import {
   List,
 } from "@material-tailwind/react";
 import { useMap } from "react-leaflet";
-
+import { Spinner } from "@material-tailwind/react";
 
 export function SampleCard(props) {
     const map = useMap();
+    const [spinner, setSpinner] = useState(false);
+    
+    useEffect(() => {
+        (props.gj1bbox ?? props.gj2bbox ?? props.gj3bbox ?? 
+            props.sh1bbox ?? props.sh2bbox ?? props.sh3bbox ?? 
+            props.r1bbox ?? props.k1bbox) ? (spinner ? setSpinner(false) : null) : setSpinner(true);
+    }, [
+        props.gj1bbox, props.gj2bbox, props.gj3bbox,
+        props.sh1bbox, props.sh2bbox, props.sh3bbox,
+        props.r1bbox, props.k1bbox
+    ]);
 
     function render(handler, bbox, name) {
+        const disable = !Boolean(bbox);
+
         return <ListItem className="px-0 py-2">
             <label
                 htmlFor={`sample-vertical-list-${name}`}
-                className="flex w-full cursor-pointer items-center px-3 py-2 pl-0"
+                className={`flex w-full cursor-pointer items-center px-3 py-2 pl-0 ${disable && 'cursor-progress text-gray-500'}`}
             >
                 <ListItemPrefix className="mr-3">
                     <Checkbox
+                        disabled={disable}
                         id={`sample-vertical-list-${name}`}
                         ripple={false}
                         className="hover:before:opacity-0"
@@ -49,23 +63,26 @@ export function SampleCard(props) {
                 }}
                 onMouseLeave={(e) => {
                     if (typeof map.scrollWheelZoom.enable == 'function') map.scrollWheelZoom.enable();
-                }}      
+                }}
             >
                 <div className="mb-6 flex items-center justify-between">
-                <Typography variant="h5" color="blue-gray">
-                    Sample Layers
-                </Typography>
+                    <Typography variant="h5" color="blue-gray">
+                        Sample Layers
+                    </Typography>
                 </div>
-                <List className='p-0'>
-                    {render(props.gj1Handler, props.gj1bbox, 'Europe Geojson')}
-                    {render(props.sh3Handler, props.sh3bbox, 'Germany Boundry Shapefile')}
-                    {render(props.r1Handler, props.r1bbox, 'Lisbon Elevation Geotif')}
-                    {render(props.gj2Handler, props.gj2bbox, 'Ontarion Geojson')}
-                    {render(props.k1Handler, props.k1bbox, 'Denmark Boundry KML')}
-                    {render(props.sh1Handler, props.sh1bbox, 'Crime Shapefile')}
-                    {render(props.gj3Handler, props.gj3bbox, 'Quebec Geojson')}
-                    {render(props.sh2Handler, props.sh2bbox, 'South Africa Boundry Shapefile')}
-                </List>
+                {
+                    spinner ? <Spinner className="absolute m-auto top-0 bottom-0 right-0 left-0" />
+                    : <List className='p-0'>
+                        {render(props.gj1Handler, props.gj1bbox, 'Europe Geojson')}
+                        {render(props.sh3Handler, props.sh3bbox, 'Germany Boundry Shapefile')}
+                        {render(props.r1Handler, props.r1bbox, 'Lisbon Elevation Geotif')}
+                        {render(props.gj2Handler, props.gj2bbox, 'Ontarion Geojson')}
+                        {render(props.k1Handler, props.k1bbox, 'Denmark Boundry KML')}
+                        {render(props.sh1Handler, props.sh1bbox, 'Crime Shapefile')}
+                        {render(props.gj3Handler, props.gj3bbox, 'Quebec Geojson')}
+                        {render(props.sh2Handler, props.sh2bbox, 'South Africa Boundry Shapefile')}
+                    </List>
+                }
             </Drawer>
         </React.Fragment>
     );
