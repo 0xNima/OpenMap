@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ToastContainer } from 'react-toastify';
 import { EditControl } from "react-leaflet-draw"
 import * as L from "leaflet";
-import { ICON_MAP, INIT_LOCATION, INIT_ZOOM } from '../constants'
+import { ICON_MAP, INIT_LOCATION, INIT_ZOOM, POIS_SUB_MENU } from '../constants'
 import { POIAlert } from './POIAlert'
 import { SampleCard } from './SampleCard'
 import shp from 'shpjs';
@@ -22,6 +22,7 @@ import toGeoJSON from "@mapbox/togeojson";
 export default function() {
     const position = INIT_LOCATION;
     const [drawerState, setDrawer] = useState(false);
+    const [defaultOpenTab, setDefaultOpenTab] = useState(false);
     const [showSampleCard, setShowSampleCard] = useState(false);
     const [layers, setLayers] = useState([
         {
@@ -292,7 +293,10 @@ export default function() {
                     />
                 </div>
 
-                <POIAlert open={showAlert} handleOpen={() => setShowAlert(!showAlert)}/>
+                <POIAlert open={showAlert} handleOpen={() => setShowAlert(!showAlert)} onClose={(confirmed) => {
+                    setDrawer(true);
+                    setDefaultOpenTab(POIS_SUB_MENU);
+                }}/>
                 
                 <LayerGroup ref={sampleLayer}></LayerGroup>
 

@@ -26,22 +26,17 @@ import {
 } from "@heroicons/react/24/outline";
 import { useMap } from "react-leaflet";
 import { Bounce, toast } from "react-toastify";
-import { FLAY_ZOOM, INIT_LOCATION, INIT_ZOOM, POI_MIN_REQUIRED_ZOOM, POI_NOTIFICATION_DELAY, POIS } from "../constants";
+import { FLAY_ZOOM, INIT_LOCATION, INIT_ZOOM, POI_MIN_REQUIRED_ZOOM, POI_NOTIFICATION_DELAY, POIS, 
+  COLLAPSED, LAYERS_SUB_MENU, POIS_SUB_MENU, DRAWING_SUB_MENU, GEODATA_SUB_MENU, RASTER_SUB_MENU } from "../constants";
 import GeoCoder from "./GeoCoder";
 import DragAndDrop from "./DragAndDrop";
 import TrashIcon from "./TrashIcon";
 
 
-const COLLAPSED = 0
-const LAYERS_SUB_MENU = 1
-const POIS_SUB_MENU = 2
-const DRAWING_SUB_MENU = 3
-const GEODATA_SUB_MENU = 4
-const RASTER_SUB_MENU = 5
 
 
 export function Sidebar(props) {
-  const [open, setOpen] = useState(0);
+  const [open, setOpen] = useState(props.deafultOpenTab ?? COLLAPSED);
   const [canShowAlert, setCanShowAlert] = useState(true);
   const map = useMap();
   const toastId = useRef(null);

@@ -42,14 +42,18 @@ export function POIAlert(props) {
                 <Typography className="font-normal">
                     We use <span className="font-medium">Overpass turbo API</span> to fetch Point Of Interests, its
                     performance depends on your current <span className="font-medium">Bounding Box</span>. 
-                    Select <span className="font-medium">Automatic Zoom</span> to confine your bounding box.
+                    Select <span className="font-medium">(Automatic) Zoom</span> to confine your bounding box.
                 </Typography>
             </DialogBody>
             <DialogFooter className="space-x-2 py-2">
-                <Button variant="text" color="blue-gray" onClick={props.handleOpen}>Dismiss</Button>
+                <Button variant="text" color="blue-gray" onClick={() => {
+                  props.handleOpen();
+                  props?.onClose(false);
+                }}>Dismiss</Button>
                 <Button variant="gradient" onClick={() => {
                     map.flyTo(map.getCenter(), POI_MIN_REQUIRED_ZOOM);
                     props.handleOpen();
+                    props?.onClose(true);
                 }}>Optimal Zoom</Button>
             </DialogFooter>
         </Dialog>
