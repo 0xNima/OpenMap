@@ -27,12 +27,12 @@ export default function() {
         {
             name: 'Precipitation',
             url: 'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=d78cfd510447b3735d32c4965ee35c9b',
-            active: true,
+            active: false,
         },
         {
             name: 'Clouds',
             url: 'https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=d78cfd510447b3735d32c4965ee35c9b',
-            active: true,
+            active: false,
         },
         {
             name: 'Temprature',
