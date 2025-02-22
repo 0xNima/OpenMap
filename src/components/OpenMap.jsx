@@ -4,7 +4,7 @@ import "leaflet-draw/dist/leaflet.draw.css"
 import { Sidebar } from './Sidebar'
 import { IconButton } from '@material-tailwind/react'
 import { Bars3Icon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/solid'
-import { InformationCircleIcon as OInformationCircleIcon } from '@heroicons/react/24/outline'
+import { InformationCircleIcon as OInformationCircleIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
 import { useEffect, useRef, useState } from 'react'
 import { ToastContainer } from 'react-toastify';
@@ -17,12 +17,14 @@ import shp from 'shpjs';
 import parse_georaster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
 import toGeoJSON from "@mapbox/togeojson";
+import ZoomToGlobe from './ZoomToGlobe'
 
 
 export default function() {
     const position = INIT_LOCATION;
     const [drawerState, setDrawer] = useState(false);
     const [showSampleCard, setShowSampleCard] = useState(false);
+    const [toggleGlobeMap, setToggleGlobeMap] = useState(false);
     const [layers, setLayers] = useState([
         {
             name: 'Precipitation',
@@ -320,6 +322,7 @@ export default function() {
                         k1bbox={k1?.bbox}/>
                 </div>
 
+                <ZoomToGlobe zoom={toggleGlobeMap} />
             </MapContainer>
             <div className='leaflet-top leaflet-right'>
                 <IconButton variant="text" size="lg" onClick={() => setDrawer(!drawerState)} className="leaflet-bar leaflet-control bg-white hover:bg-white">
@@ -335,6 +338,11 @@ export default function() {
                     ) : (
                     <OInformationCircleIcon className="h-8 w-8 stroke-2" />
                     )}
+                </IconButton>
+            </div>
+            <div className='leaflet-bottom leaflet-right'>
+                <IconButton variant="text" size="lg" onClick={() => setToggleGlobeMap(!toggleGlobeMap)} className="leaflet-bar leaflet-control bg-white hover:bg-white">
+                    <GlobeAltIcon className="h-8 w-8 stroke-2" />
                 </IconButton>
             </div>
             <ToastContainer newestOnTop={true}/>

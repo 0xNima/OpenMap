@@ -56,7 +56,7 @@ export default function (props) {
         {
             suggestions.length ?
             <Card
-                className="absolute z-10000 w-full max-h-[200px] overflow-y-scroll thin-scrollbar"
+                className="fixed z-10000 max-h-[200px] max-w-[300px] truncate overflow-y-scroll thin-scrollbar-rounded"
                 onMouseEnter={() => typeof map.scrollWheelZoom.disable == 'function' && map.scrollWheelZoom.disable()}
                 onMouseLeave={() => typeof map.scrollWheelZoom.enable == 'function' && map.scrollWheelZoom.enable()}
             >
